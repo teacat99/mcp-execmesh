@@ -1,10 +1,14 @@
 package security
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
+	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/teacat99/mcp-execmesh/internal/audit"
 )
@@ -170,3 +174,111 @@ func extractBearerOrAPIKey(r *http.Request) string {
 	}
 	return ""
 }
+
+// NormalizeAccept ensures MCP POST requests satisfy the Go MCP SDK's streamableAccepts requirement
+// (must contain both 'application/json' and 'text/event-stream' or '*/*') without causing 400 Bad Request
+// for standard clients, ChatGPT actions, or curl that only send 'Accept: application/json' or omit Accept.
+func NormalizeAccept(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			accept := r.Header.Get("Accept")
+			if accept == "" || (!strings.Contains(accept, "application/json") && !strings.Contains(accept, "*/*")) ||
+				(!strings.Contains(accept, "text/event-stream") && !strings.Contains(accept, "*/*")) {
+				r.Header.Set("Accept", "application/json, text/event-stream")
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+type statusResponseWriter struct {
+	http.ResponseWriter
+	statusCode   int
+	bytesWritten int64
+}
+
+func (w *statusResponseWriter) WriteHeader(code int) {
+	w.statusCode = code
+	w.ResponseWriter.WriteHeader(code)
+}
+
+func (w *statusResponseWriter) Write(b []byte) (int, error) {
+	if w.statusCode == 0 {
+		w.statusCode = http.StatusOK
+	}
+	n, err := w.ResponseWriter.Write(b)
+	w.bytesWritten += int64(n)
+	return n, err
+}
+
+func (w *statusResponseWriter) Flush() {
+	if flusher, ok := w.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+type mcpRequestSnippet struct {
+	Method string `json:"method"`
+	Params struct {
+		Name string `json:"name"`
+	} `json:"params"`
+}
+
+func sniffMCPMethod(r *http.Request) (mcpMethod string, toolName string) {
+	if r.Method != http.MethodPost || r.Body == nil {
+		return "", ""
+	}
+	var peekBuf [2048]byte
+	n, err := io.ReadFull(r.Body, peekBuf[:])
+	if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+		return "", ""
+	}
+	r.Body = io.NopCloser(io.MultiReader(bytes.NewReader(peekBuf[:n]), r.Body))
+
+	var snippet mcpRequestSnippet
+	if err := json.Unmarshal(peekBuf[:n], &snippet); err == nil {
+		return snippet.Method, snippet.Params.Name
+	}
+	return "", ""
+}
+
+// RequestLogger logs high-level structured diagnostics for MCP HTTP requests with path redaction.
+func RequestLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		mcpMethod, toolName := sniffMCPMethod(r)
+
+		sw := &statusResponseWriter{ResponseWriter: w}
+		next.ServeHTTP(sw, r)
+
+		duration := time.Since(start)
+		status := sw.statusCode
+		if status == 0 {
+			status = http.StatusOK
+		}
+
+		redactedPath := RedactPath(r.URL.Path)
+		attrs := []any{
+			"method", r.Method,
+			"path", redactedPath,
+			"status", status,
+			"duration_ms", duration.Milliseconds(),
+			"remote_ip", r.RemoteAddr,
+		}
+		if mcpMethod != "" {
+			attrs = append(attrs, "mcp_method", mcpMethod)
+		}
+		if toolName != "" {
+			attrs = append(attrs, "tool", toolName)
+		}
+
+		if status >= 500 {
+			slog.Error("mcp request", attrs...)
+		} else if status >= 400 {
+			slog.Warn("mcp request", attrs...)
+		} else {
+			slog.Info("mcp request", attrs...)
+		}
+	})
+}
+

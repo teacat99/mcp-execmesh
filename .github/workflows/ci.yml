@@ -14,5 +14,7 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Run tests
-        run: go test ./...
+      - name: MCP schema contract tests
+        run: go test -v ./internal/mcp/... -run 'Schema|FilePush'
+      - name: Run all tests
+        run: go test -v ./...

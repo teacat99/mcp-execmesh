@@ -9,40 +9,40 @@ import (
 )
 
 type TargetAddToolInput struct {
-	ID           string   `json:"id" jsonschema:"New target id"`
-	Name         string   `json:"name,omitempty" jsonschema:"Display name"`
-	Host         string   `json:"host" jsonschema:"SSH hostname or IP"`
-	Port         int      `json:"port,omitempty" jsonschema:"SSH port, default 22"`
+	ID           string   `json:"id" jsonschema:"New unique target identifier"`
+	Name         string   `json:"name,omitempty" jsonschema:"Human-readable display name"`
+	Host         string   `json:"host" jsonschema:"SSH hostname or IP address"`
+	Port         int      `json:"port,omitempty" jsonschema:"SSH port number (default: 22)"`
 	User         string   `json:"user" jsonschema:"SSH username"`
-	AuthRef      string   `json:"auth_ref" jsonschema:"Credential id from credentials_list"`
-	KnownHostRef string   `json:"known_host_ref,omitempty" jsonschema:"known_hosts name; defaults to host"`
-	DefaultCwd   string   `json:"default_cwd,omitempty"`
-	Shell        string   `json:"shell,omitempty"`
-	Tags         []string `json:"tags,omitempty"`
-	ValidateOnly bool     `json:"validate_only,omitempty" jsonschema:"If true, test SSH but do not write config"`
+	AuthRef      string   `json:"auth_ref" jsonschema:"Credential identifier from credentials_list"`
+	KnownHostRef string   `json:"known_host_ref,omitempty" jsonschema:"known_hosts entry identifier; defaults to host"`
+	DefaultCwd   string   `json:"default_cwd,omitempty" jsonschema:"Optional default working directory on target host"`
+	Shell        string   `json:"shell,omitempty" jsonschema:"Optional login shell path (e.g. /bin/bash, /bin/sh)"`
+	Tags         []string `json:"tags,omitempty" jsonschema:"Optional labels/tags for grouping"`
+	ValidateOnly bool     `json:"validate_only,omitempty" jsonschema:"If true, validate SSH connectivity without persisting configuration"`
 }
 
 type TargetIDInput struct {
-	Target string `json:"target" jsonschema:"Target id"`
+	Target string `json:"target" jsonschema:"The unique target host identifier"`
 }
 
 type TargetUpdateToolInput struct {
-	Target  string         `json:"target"`
-	Changes map[string]any `json:"changes"`
+	Target  string         `json:"target" jsonschema:"The target host identifier to update"`
+	Changes map[string]any `json:"changes" jsonschema:"Key-value map of properties to update (e.g. name, host, port, user, default_cwd, shell, tags)"`
 }
 
 type KnownHostInfoInput struct {
-	Name string `json:"name,omitempty" jsonschema:"known_hosts name to filter"`
+	Name string `json:"name,omitempty" jsonschema:"Optional host name or pattern to filter known_hosts entries"`
 }
 
 type KnownHostAddInput struct {
-	Name      string `json:"name" jsonschema:"Host name as stored in known_hosts"`
-	Algorithm string `json:"algorithm" jsonschema:"ssh-ed25519, ssh-rsa, or ecdsa-sha2-nistp256"`
-	PublicKey string `json:"public_key" jsonschema:"Base64 SSH public key blob"`
+	Name      string `json:"name" jsonschema:"Host name or pattern as stored in known_hosts"`
+	Algorithm string `json:"algorithm" jsonschema:"Key algorithm: 'ssh-ed25519', 'ssh-rsa', or 'ecdsa-sha2-nistp256'"`
+	PublicKey string `json:"public_key" jsonschema:"Base64-encoded SSH public key blob"`
 }
 
 type KnownHostRemoveInput struct {
-	Name string `json:"name"`
+	Name string `json:"name" jsonschema:"Host name or pattern to remove from known_hosts"`
 }
 
 type ConfigReloadInput struct{}

@@ -301,6 +301,29 @@ func TestMilestone3_E2E_TransferAndMemory(t *testing.T) {
 	assert.Equal(t, "0644", pushRes2.Mode)
 
 	// ==========================================
+	// Test Step 3.1: file_push_url Direct URL Push
+	// ==========================================
+	urlDestPath := filepath.Join(remoteAppDir, "app-url.bin")
+	pushURLRes, err := transferMgr.Push(ctx, transfer.PushRequest{
+		Target: "test-01",
+		File: transfer.DownloadFileSpec{
+			DownloadURL: httpServer.URL + "/app.bin",
+		},
+		RemotePath: urlDestPath,
+		Overwrite:  true,
+		Mode:       "0640",
+	})
+	require.NoError(t, err)
+	assert.Equal(t, urlDestPath, pushURLRes.RemotePath)
+	assert.Equal(t, int64(len(testFileContent)), pushURLRes.Size)
+	assert.Equal(t, expectedSHA256Hex, pushURLRes.SHA256)
+	assert.Equal(t, "0640", pushURLRes.Mode)
+
+	urlDiskData, err := os.ReadFile(urlDestPath)
+	require.NoError(t, err)
+	assert.Equal(t, testFileContent, urlDiskData)
+
+	// ==========================================
 	// Test Step 4: 1GB Large File Streaming & Memory Verification
 	// ==========================================
 	hugeDestPath := filepath.Join(remoteAppDir, "huge-1gb.bin")

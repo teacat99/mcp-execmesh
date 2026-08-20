@@ -60,10 +60,11 @@ ChatGPT / Cursor / MCP Client
 | `job_status` | 查询异步任务执行状态、PID、退出码及输出统计 | Yes | No | M2 |
 | `job_output` | 分页分段流式读取任务的 stdout 或 stderr 日志 | Yes | No | M2 |
 | `job_cancel` | 安全终止指定的远程后台任务进程（SIGTERM / SIGKILL） | No | Yes | M2 |
-| `file_push` | 兼容 OpenAI fileParams，从 URL 流式下载并直写 SFTP（支持 SHA256 校验与原子重命名） | No | Yes | M3 |
+| `file_push` | 接收 ChatGPT/客户端提供的文件引用；OpenAI fileParams 在调用时解析为临时 download_url，服务端再流式下载并直写 SFTP | No | Yes | M3 |
+| `file_push_url` | 直接从任意 HTTP/HTTPS URL 流式下载并直写远程 Target SFTP（支持 SSRF 防御、64KiB 流式中继与 SHA256 校验） | No | Yes | M3 |
 | `file_stat` | 查询远程文件/目录状态（大小、类型、权限、修改时间） | Yes | No | M3 |
 | `file_hash` | 计算远程文件的密码学哈希（SHA256, SHA1, MD5） | Yes | No | M5 |
-| `file_pull_prepare` | 生成单次有效下载 Ticket，返回公网 HTTPS `download_url`（非 Token 字段） | Yes | No | M5 |
+| `file_pull_prepare` | 生成单次有效下载 Ticket，返回公网 HTTPS `download_url`（短效单次 URL） | Yes | No | M5 |
 | `target_add` | **Admin**：新增 Target 配置 | No | Yes | Admin |
 | `target_update` | **Admin**：更新 Target 配置 | No | Yes | Admin |
 | `target_enable` | **Admin**：启用 Target | No | No | Admin |
@@ -153,6 +154,26 @@ server:
 - Ticket 单次有效、有 TTL（默认 900s，见 `runtime.default_download_ticket_ttl`）
 - 反向代理须对 `/files/` 关闭 buffering，并配置 access log 脱敏（见 [deploy/README.md — §4 反向代理](deploy/README.md)）
 - 生产环境完整配置见 **[生产部署指南](deploy/README.md)**（HTTPS、Nginx、`public_base_url`、安全清单）
+
+### 5. `file_push` 与 OpenAI `fileParams`
+
+`file_push` 的 MCP 原始 `inputSchema` 中，`file` 是一个规范的文件对象：
+
+```json
+{
+  "download_url": "https://...",
+  "file_id": "file-xyz",
+  "mime_type": "text/plain",
+  "file_name": "example.txt"
+}
+```
+
+当通过 ChatGPT/Codex 使用时，OpenAI 客户端会自动将带有 `_meta["openai/fileParams"]: ["file"]` 的字段展示为本地/会话文件引用（如 `/mnt/data/example.txt`），并在真正调用 MCP 之前自动解析并注入上述对象。
+
+**调用规则：**
+- **ChatGPT 上传的文件**：模型直接将用户提供的文件引用传入 `file_push` 的 `file` 参数；
+- **公网 HTTPS URL 文件**：请直接调用 `file_push_url`（传入 `url` 字符串），不要将 URL 填入 `file_push` 的 `file` 字段；
+- **原生 MCP Client**：可按照原始 MCP Schema 直接提供 `DownloadFileSpec` 文件对象。
 
 ---
 

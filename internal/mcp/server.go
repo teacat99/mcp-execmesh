@@ -21,22 +21,33 @@ import (
 	"github.com/teacat99/mcp-execmesh/internal/version"
 )
 
-const ServerInstructions = `This MCP manages configured remote hosts.
+const ServerInstructions = `Remote Executor MCP (ExecMesh) manages configured remote hosts and secure execution workflows.
 
-Use targets_list when the intended target is unknown.
-Use target_info to inspect capabilities and limits of a specific target.
-Admin principals may use target_add/update/enable/disable/remove, target_test, credentials_list, known_host_info/add/remove, and config_reload.
-Use exec for short commands (e.g. status checks, git, short inspection).
-Use exec_start for long-running builds, tests, or deployments.
-Use job_status and job_output to monitor asynchronous jobs.
-Use job_cancel to terminate running jobs.
-Use file_push to transfer files from ChatGPT/URLs to remote hosts.
-Use file_stat to inspect file/directory metadata on remote hosts.
-Use file_hash to calculate cryptographic checksums (SHA256, SHA1, MD5) of remote files.
-Use file_pull_prepare to generate one-time download tickets for remote files.
+Core Usage Workflows:
+1. Target Discovery & Inspection:
+   - Always call targets_list first if you do not know the exact target ID.
+   - Call target_info to inspect capabilities (exec, upload, jobs), limits, and default working directory for a target.
 
-Never request SSH passwords or private keys from the user through tool arguments.
-Do not assume an arbitrary hostname is reachable; only configured target IDs are supported.`
+2. Command Execution:
+   - Short/Synchronous commands (<30s, e.g. status checks, git, inspection): Use 'exec'.
+   - Long/Asynchronous commands (builds, tests, migrations, deployments, npm install, apt update): Use 'exec_start' -> query 'job_status' -> read 'job_output' (with offset/limit pagination) -> call 'job_cancel' if aborting.
+
+3. File Transfers & Operations:
+   - Push user/client-provided files: Use 'file_push' (with OpenAI fileParams clients, pass the provided file reference to 'file'; do not manually put a raw URL string in the 'file' parameter).
+   - Push arbitrary HTTP/HTTPS URLs: Use 'file_push_url' with direct download URL.
+   - Inspect remote file/directory metadata: Use 'file_stat'.
+   - Calculate cryptographic checksums: Use 'file_hash' (supports sha256, sha1, md5).
+   - Generate secure one-time HTTPS download link: Use 'file_pull_prepare'.
+
+4. Admin Target Management (Requires admin scopes):
+   - Add/update/enable/disable/remove targets: 'target_add', 'target_update', 'target_enable', 'target_disable', 'target_remove'.
+   - Test target connectivity: 'target_test'.
+   - List credentials and known hosts: 'credentials_list', 'known_host_info', 'known_host_add', 'known_host_remove'.
+   - Reload configuration: 'config_reload'.
+
+Security Rules:
+- Never ask the user for SSH passwords or private keys in tool arguments.
+- Always use configured target IDs; do not assume arbitrary hostnames or IP addresses are directly callable.`
 
 // Server encapsulates the MCP server instance, tools, and HTTP handlers.
 type Server struct {
@@ -160,7 +171,7 @@ func (s *Server) Handler() http.Handler {
 		mcpPath = "/" + mcpPath
 	}
 
-	// Wrap stream handler with concurrency limiter. Auth is applied per-route.
+	// Wrap stream handler with Accept normalization and concurrency limiter. Auth is applied per-route.
 	core := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		select {
 		case s.requestSem <- struct{}{}:
@@ -178,16 +189,21 @@ func (s *Server) Handler() http.Handler {
 		}
 		s.streamHandler.ServeHTTP(w, r)
 	})
+	coreHandler := security.NormalizeAccept(core)
 
 	origins := s.cfg.Server.Auth.AllowedOrigins
-	bearerChain := security.CORSAndOrigin(origins,
-		security.BearerAuth(s.authMgr, s.auth, s.auditLogger, s.rateLimiter, core),
+	bearerChain := security.RequestLogger(
+		security.CORSAndOrigin(origins,
+			security.BearerAuth(s.authMgr, s.auth, s.auditLogger, s.rateLimiter, coreHandler),
+		),
 	)
 	mux.Handle(mcpPath, bearerChain)
 
 	if s.authMgr != nil && s.cfg.Server.Auth.CapabilityEnabled {
-		capChain := security.CORSAndOrigin(origins,
-			security.CapabilityAuth(s.authMgr, s.auditLogger, s.rateLimiter, core),
+		capChain := security.RequestLogger(
+			security.CORSAndOrigin(origins,
+				security.CapabilityAuth(s.authMgr, s.auditLogger, s.rateLimiter, coreHandler),
+			),
 		)
 		mux.Handle(mcpPath+"/", capChain)
 	}

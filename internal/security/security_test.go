@@ -1,7 +1,9 @@
 package security
 
 import (
+	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -116,4 +118,87 @@ func TestSSRFValidation(t *testing.T) {
 	assert.False(t, IsPrivateIP([]byte{8, 8, 8, 8}))
 	assert.False(t, IsPrivateIP([]byte{1, 1, 1, 1}))
 }
+
+func TestNormalizeAccept(t *testing.T) {
+	tests := []struct {
+		name       string
+		method     string
+		origAccept string
+		wantAccept string
+	}{
+		{
+			name:       "empty accept in POST",
+			method:     "POST",
+			origAccept: "",
+			wantAccept: "application/json, text/event-stream",
+		},
+		{
+			name:       "json only in POST",
+			method:     "POST",
+			origAccept: "application/json",
+			wantAccept: "application/json, text/event-stream",
+		},
+		{
+			name:       "sse only in POST",
+			method:     "POST",
+			origAccept: "text/event-stream",
+			wantAccept: "application/json, text/event-stream",
+		},
+		{
+			name:       "wildcard in POST",
+			method:     "POST",
+			origAccept: "*/*",
+			wantAccept: "*/*",
+		},
+		{
+			name:       "both present in POST",
+			method:     "POST",
+			origAccept: "application/json, text/event-stream",
+			wantAccept: "application/json, text/event-stream",
+		},
+		{
+			name:       "GET request untouched",
+			method:     "GET",
+			origAccept: "text/html",
+			wantAccept: "text/html",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var recordedAccept string
+			handler := NormalizeAccept(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				recordedAccept = r.Header.Get("Accept")
+				w.WriteHeader(http.StatusOK)
+			}))
+
+			req := httptest.NewRequest(tc.method, "/mcp", nil)
+			if tc.origAccept != "" {
+				req.Header.Set("Accept", tc.origAccept)
+			}
+			rec := httptest.NewRecorder()
+			handler.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.wantAccept, recordedAccept)
+		})
+	}
+}
+
+func TestRequestLogger(t *testing.T) {
+	var handled bool
+	handler := RequestLogger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handled = true
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"result":"ok"}`))
+	}))
+
+	req := httptest.NewRequest("POST", "/mcp/cap_v1_testsecret1234567890abcdef1234567890", strings.NewReader(`{"jsonrpc":"2.0","method":"tools/call","params":{"name":"targets_list"}}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	assert.True(t, handled)
+	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
 

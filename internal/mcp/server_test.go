@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -119,3 +120,61 @@ func TestAuthProtection(t *testing.T) {
 	// Even if body is invalid JSON-RPC, status should not be 401 Unauthorized
 	assert.NotEqual(t, http.StatusUnauthorized, rec.Code)
 }
+
+func TestStreamableHTTP_ToolsDiscoveryAndInvocation(t *testing.T) {
+	cfg := config.DefaultConfig()
+	reg := &mockRegistry{
+		targets: map[string]*target.Target{
+			"test-01": {
+				ID:   "test-01",
+				Name: "Test Node 01",
+			},
+		},
+	}
+	exec := &mockExecutor{}
+	auth := &security.NoneAuthenticator{}
+
+	srv, err := NewServer(cfg, reg, exec, nil, nil, auth, nil)
+	require.NoError(t, err)
+
+	handler := srv.Handler()
+
+	// 1. Initialize with standard MCP Accept header
+	initBody := `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test-client","version":"1.0"}}}`
+	req := httptest.NewRequest(http.MethodPost, "/mcp", strings.NewReader(initBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	t.Logf("Initialize Response: %s", rec.Body.String())
+
+	// 2. Tools List with standard MCP Accept header
+	listBody := `{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}`
+	req = httptest.NewRequest(http.MethodPost, "/mcp", strings.NewReader(listBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	t.Logf("Tools List Response: %s", rec.Body.String())
+
+	// 3. Tools Call targets_list with Accept: application/json only (simulating generic HTTP client or ChatGPT action caller)
+	callBody := `{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"targets_list","arguments":{}}}`
+	req = httptest.NewRequest(http.MethodPost, "/mcp", strings.NewReader(callBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	t.Logf("Tools Call with 'Accept: application/json' Code: %d, Body: %s", rec.Code, rec.Body.String())
+
+	// 4. Tools Call targets_list with Accept: application/json, text/event-stream
+	req = httptest.NewRequest(http.MethodPost, "/mcp", strings.NewReader(callBody))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json, text/event-stream")
+	rec = httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	t.Logf("Tools Call with full Accept Code: %d, Body: %s", rec.Code, rec.Body.String())
+}
+
