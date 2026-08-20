@@ -1,12 +1,11 @@
 # Multi-stage Standalone Dockerfile for Remote Executor MCP (mcp-execmesh)
 # Can be used directly with docker build on any machine without pre-compiling Go locally
 
-FROM golang:1.24-alpine AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /src
 
-ENV GOPROXY=https://goproxy.cn,https://proxy.golang.org,direct \
-    CGO_ENABLED=0 \
+ENV CGO_ENABLED=0 \
     GOOS=linux
 
 COPY go.mod go.sum ./

@@ -96,6 +96,18 @@ Capability URL 必须当作密码，切勿提交到 Git 或写入日志。
 
 ### 2. 使用 Docker 运行
 
+**拉取公开镜像（GitHub Container Registry）：**
+
+```bash
+docker pull ghcr.io/teacat99/mcp-execmesh:latest
+docker run --rm -p 8080:8080 \
+  -v "$(pwd)/configs/config.example.yaml:/etc/remote-mcp/config.yaml:ro" \
+  -v "$(pwd)/configs/known_hosts.example:/etc/remote-mcp/known_hosts:ro" \
+  ghcr.io/teacat99/mcp-execmesh:latest
+```
+
+**本地 compose 构建：**
+
 ```bash
 docker compose up -d
 ```
