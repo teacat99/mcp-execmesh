@@ -1,6 +1,7 @@
 # Remote Executor MCP (`mcp-execmesh`)
 
 [![CI](https://github.com/teacat99/mcp-execmesh/actions/workflows/ci.yml/badge.svg)](https://github.com/teacat99/mcp-execmesh/actions/workflows/ci.yml)
+[![Docker](https://github.com/teacat99/mcp-execmesh/actions/workflows/docker.yml/badge.svg)](https://github.com/teacat99/mcp-execmesh/actions/workflows/docker.yml)
 
 Remote Executor MCP 是一个轻量级、低内存占用、高安全性的 AI 远程执行网关（MCP Server）。它采用 **控制面（MCP Gateway）与数据面（Remote Target）分离** 的架构，允许 AI 客户端（如 ChatGPT Developer Mode、Cursor 等）通过标准 MCP Streamable HTTP 协议安全地控制配置的目标主机，执行命令、流式传输文件并管理异步长任务。
 
@@ -100,6 +101,9 @@ Capability URL 必须当作密码，切勿提交到 Git 或写入日志。
 
 ```bash
 docker pull ghcr.io/teacat99/mcp-execmesh:latest
+# 或指定 semver 版本（发版后可用）
+# docker pull ghcr.io/teacat99/mcp-execmesh:1.0.0
+
 docker run --rm -p 8080:8080 \
   -v "$(pwd)/configs/config.example.yaml:/etc/remote-mcp/config.yaml:ro" \
   -v "$(pwd)/configs/known_hosts.example:/etc/remote-mcp/known_hosts:ro" \
@@ -121,6 +125,42 @@ curl http://127.0.0.1:8080/healthz
 curl http://127.0.0.1:8080/readyz
 # {"status":"ok","targets_count":1}
 ```
+
+---
+
+## 发布与镜像（维护者）
+
+公开 Docker 镜像 **仅由 public 仓库**（[`teacat99/mcp-execmesh`](https://github.com/teacat99/mcp-execmesh)）的 GitHub Actions 自动构建并推送到 GHCR。私有开发仓用于日常开发与本地镜像测试，不自动发布。
+
+| 镜像 | 说明 |
+|---|---|
+| `ghcr.io/teacat99/mcp-execmesh:latest` | `main` 分支最新构建 |
+| `ghcr.io/teacat99/mcp-execmesh:1.0.0` | semver tag 发版（示例） |
+
+**Private → Public 同步发版：**
+
+```bash
+# 1. 在 private 仓 master 完成开发与测试
+go test ./...
+
+# 2. （可选）打 semver tag
+git tag v1.0.0
+
+# 3. 同步到 public 仓（排除 .cursor/ 等）
+./scripts/sync-public.sh
+
+# 或显式指定 tag（不必先在 private 打 tag）
+# PUBLIC_TAG=v1.0.0 ./scripts/sync-public.sh
+```
+
+同步后 public 仓 `main` push（及 `v*` tag push）会自动触发 Docker workflow。本地手动测试镜像：
+
+```bash
+docker build -f deploy/Dockerfile.standalone -t mcp-execmesh:dev .
+docker run --rm mcp-execmesh:dev -version
+```
+
+版本变更见 [CHANGELOG.md](CHANGELOG.md)。
 
 ---
 

@@ -12,9 +12,22 @@ permissions:
 
 jobs:
   publish:
+    if: github.repository == 'teacat99/mcp-execmesh'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Resolve build metadata
+        id: buildmeta
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            ver="${GITHUB_REF_NAME#v}"
+          else
+            ver="0.0.0-dev+${GITHUB_SHA:0:7}"
+          fi
+          echo "version=${ver}" >> "$GITHUB_OUTPUT"
+          echo "commit=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
 
       - uses: docker/setup-buildx-action@v3
 
@@ -42,3 +55,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VERSION=${{ steps.buildmeta.outputs.version }}
+            GIT_COMMIT=${{ steps.buildmeta.outputs.commit }}
+            BUILD_DATE=${{ steps.buildmeta.outputs.date }}

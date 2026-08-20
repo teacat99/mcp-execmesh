@@ -104,3 +104,21 @@ sudo systemctl enable --now remote-mcp
 - **存活探针 (Liveness Probe)**：`GET /healthz` -> 返回 `200 OK`
 - **就绪探针 (Readiness Probe)**：`GET /readyz` -> 返回 `200 OK`，若 Target 校验或依赖故障返回 `503 Service Unavailable`
 - **单次安全下载**：`GET /files/{token}` -> 流式下载远程 Target 文件
+
+---
+
+## 7. 维护者发版（Private → Public → GHCR）
+
+日常开发在 **private 仓库**（`mcp-execmesh-private`，分支 `master`）进行；生产公开镜像由 **public 仓库**（`mcp-execmesh`，分支 `main`）的 GitHub Actions 自动构建。
+
+```bash
+# private 仓本地验证
+go test ./...
+docker build -f deploy/Dockerfile.standalone -t mcp-execmesh:dev .
+
+# 同步到 public 并（可选）传播 v* tag
+git tag v1.0.0          # 可选
+./scripts/sync-public.sh
+```
+
+同步完成后，public 仓 Actions 会将镜像推送到 `ghcr.io/teacat99/mcp-execmesh`（`:latest` 与 semver tag）。详见项目根目录 [README.md](../README.md#发布与镜像维护者) 与 [CHANGELOG.md](../CHANGELOG.md)。

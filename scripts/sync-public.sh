@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # Publish a scrubbed snapshot to the public git remote (no .cursor/ etc.).
+#
+# Optional tag propagation (v* semver only):
+#   git tag v1.0.0 && ./scripts/sync-public.sh
+#   PUBLIC_TAG=v1.0.0 ./scripts/sync-public.sh
+# Tags are applied to the public mirror HEAD and pushed to trigger GHCR semver builds.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -46,13 +51,70 @@ rsync -a --delete \
   --exclude '.public-sync-worktree/' \
   "${ROOT}/" "${WORKTREE}/"
 
+push_public_tags() {
+  local -a tags=()
+  local -a unique_tags=()
+  local tag seen
+
+  if [[ -n "${PUBLIC_TAG:-}" ]]; then
+    tags+=("${PUBLIC_TAG}")
+  fi
+
+  while IFS= read -r tag; do
+    [[ -n "${tag}" ]] && tags+=("${tag}")
+  done < <(git -C "${ROOT}" tag --points-at HEAD --list 'v*' 2>/dev/null || true)
+
+  if [[ ${#tags[@]} -eq 0 ]]; then
+    return 0
+  fi
+
+  for tag in "${tags[@]}"; do
+    if [[ ! "${tag}" =~ ^v[0-9] ]]; then
+      echo "public mirror: skip invalid tag '${tag}' (expected v* semver)" >&2
+      continue
+    fi
+
+    seen=0
+    for existing in "${unique_tags[@]}"; do
+      if [[ "${existing}" == "${tag}" ]]; then
+        seen=1
+        break
+      fi
+    done
+    if [[ "${seen}" -eq 0 ]]; then
+      unique_tags+=("${tag}")
+    fi
+  done
+
+  if [[ ${#unique_tags[@]} -eq 0 ]]; then
+    return 0
+  fi
+
+  for tag in "${unique_tags[@]}"; do
+    if git -C "${WORKTREE}" ls-remote --tags origin "refs/tags/${tag}" | grep -q .; then
+      echo "public mirror: tag ${tag} already exists on remote, skip"
+      continue
+    fi
+
+    if [[ -n "${PUBLIC_TAG_MESSAGE:-}" ]]; then
+      git -C "${WORKTREE}" tag -a "${tag}" -m "${PUBLIC_TAG_MESSAGE}"
+    else
+      git -C "${WORKTREE}" tag "${tag}"
+    fi
+    git -C "${WORKTREE}" push origin "${tag}"
+    echo "public mirror: pushed tag ${tag}"
+  done
+}
+
 git -C "${WORKTREE}" add -A
 if git -C "${WORKTREE}" diff --cached --quiet; then
-  echo "public mirror: no changes"
+  echo "public mirror: no file changes"
+  push_public_tags
   exit 0
 fi
 
 git -C "${WORKTREE}" commit -m "${PUBLIC_COMMIT_MSG:-chore: sync public mirror from private}"
 git -C "${WORKTREE}" push origin "${PUBLIC_BRANCH}"
+push_public_tags
 
 echo "public mirror pushed to ${PUBLIC_URL} (${PUBLIC_BRANCH})"

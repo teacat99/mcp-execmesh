@@ -12,7 +12,12 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -ldflags="-s -w" -o /bin/remote-mcp ./cmd/remote-mcp
+
+ARG VERSION=dev
+ARG GIT_COMMIT=unknown
+ARG BUILD_DATE=unknown
+
+RUN go build -ldflags="-s -w -X main.version=${VERSION} -X main.gitCommit=${GIT_COMMIT} -X main.buildDate=${BUILD_DATE}" -o /bin/remote-mcp ./cmd/remote-mcp
 
 FROM alpine:3.21
 
