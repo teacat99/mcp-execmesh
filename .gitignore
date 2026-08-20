@@ -10,6 +10,8 @@
 # Secrets and local configs
 /secrets/
 /test-secrets/
+configs/*.yaml
+!configs/*.example.yaml
 *.key
 *.pem
 *.password

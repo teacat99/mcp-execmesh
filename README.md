@@ -112,4 +112,6 @@ curl http://127.0.0.1:8080/readyz
 
 ## 许可证与安全
 
+本项目采用 [MIT License](LICENSE)。
+
 请参阅 [SECURITY.md](SECURITY.md) 了解详细安全规范与配置要求。

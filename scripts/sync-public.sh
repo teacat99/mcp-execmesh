@@ -31,20 +31,20 @@ for pattern in "${EXCLUDES[@]}"; do
 done
 
 rm -rf "${WORKTREE}"
-mkdir -p "${WORKTREE}"
+
+if git ls-remote --heads "${PUBLIC_URL}" "${PUBLIC_BRANCH}" | grep -q .; then
+  git clone --depth 1 --branch "${PUBLIC_BRANCH}" "${PUBLIC_URL}" "${WORKTREE}"
+else
+  mkdir -p "${WORKTREE}"
+  git -C "${WORKTREE}" init -b "${PUBLIC_BRANCH}"
+  git -C "${WORKTREE}" remote add origin "${PUBLIC_URL}"
+fi
 
 rsync -a --delete \
   "${RSYNC_EXCLUDES[@]}" \
   --exclude '.git/' \
   --exclude '.public-sync-worktree/' \
   "${ROOT}/" "${WORKTREE}/"
-
-if [[ ! -d "${WORKTREE}/.git" ]]; then
-  git -C "${WORKTREE}" init -b "${PUBLIC_BRANCH}"
-  git -C "${WORKTREE}" remote add origin "${PUBLIC_URL}"
-else
-  git -C "${WORKTREE}" remote set-url origin "${PUBLIC_URL}"
-fi
 
 git -C "${WORKTREE}" add -A
 if git -C "${WORKTREE}" diff --cached --quiet; then
@@ -53,6 +53,6 @@ if git -C "${WORKTREE}" diff --cached --quiet; then
 fi
 
 git -C "${WORKTREE}" commit -m "${PUBLIC_COMMIT_MSG:-chore: sync public mirror from private}"
-git -C "${WORKTREE}" push -u origin "${PUBLIC_BRANCH}"
+git -C "${WORKTREE}" push origin "${PUBLIC_BRANCH}"
 
 echo "public mirror pushed to ${PUBLIC_URL} (${PUBLIC_BRANCH})"
