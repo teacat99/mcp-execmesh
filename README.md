@@ -63,7 +63,20 @@ ChatGPT / Cursor / MCP Client
 | `file_push` | 兼容 OpenAI fileParams，从 URL 流式下载并直写 SFTP（支持 SHA256 校验与原子重命名） | No | Yes | M3 |
 | `file_stat` | 查询远程文件/目录状态（大小、类型、权限、修改时间） | Yes | No | M3 |
 | `file_hash` | 计算远程文件的密码学哈希（SHA256, SHA1, MD5） | Yes | No | M5 |
-| `file_pull_prepare` | 生成单次有效安全签名 Token，支持通过 HTTP GET 签名下载远程文件 | Yes | No | M5 |
+| `file_pull_prepare` | 生成单次有效下载 Ticket，返回公网 HTTPS `download_url`（非 Token 字段） | Yes | No | M5 |
+| `target_add` | **Admin**：新增 Target 配置 | No | Yes | Admin |
+| `target_update` | **Admin**：更新 Target 配置 | No | Yes | Admin |
+| `target_enable` | **Admin**：启用 Target | No | No | Admin |
+| `target_disable` | **Admin**：禁用 Target | No | No | Admin |
+| `target_remove` | **Admin**：移除 Target | No | Yes | Admin |
+| `target_test` | **Admin**：测试 Target SSH 连通性 | Yes | No | Admin |
+| `credentials_list` | **Admin**：列出凭据引用（不含明文） | Yes | No | Admin |
+| `known_host_info` | **Admin**：查询 known_hosts 条目 | Yes | No | Admin |
+| `known_host_add` | **Admin**：添加 SSH 主机公钥 | No | Yes | Admin |
+| `known_host_remove` | **Admin**：移除 SSH 主机公钥 | No | Yes | Admin |
+| `config_reload` | **Admin**：热重载配置文件 | No | No | Admin |
+
+> **Admin 工具**仅对具备 Admin Principal 的身份可用（Bearer Admin Token 或带 Admin scope 的 Capability URL）。普通 ChatGPT/Cursor 执行 Principal 无法调用。
 
 ---
 
@@ -101,8 +114,7 @@ Capability URL 必须当作密码，切勿提交到 Git 或写入日志。
 
 ```bash
 docker pull ghcr.io/teacat99/mcp-execmesh:latest
-# 或指定 semver 版本（发版后可用）
-# docker pull ghcr.io/teacat99/mcp-execmesh:1.0.0
+docker pull ghcr.io/teacat99/mcp-execmesh:1.0.0
 
 docker run --rm -p 8080:8080 \
   -v "$(pwd)/configs/config.example.yaml:/etc/remote-mcp/config.yaml:ro" \
@@ -125,6 +137,28 @@ curl http://127.0.0.1:8080/healthz
 curl http://127.0.0.1:8080/readyz
 # {"status":"ok","targets_count":1}
 ```
+
+### 4. 文件下载（`file_pull_prepare`）
+
+远程 MCP Client（如 ChatGPT）通过 `file_pull_prepare` 获取 **一次性 HTTPS 下载链接**，从 Target 拉取文件。须正确配置公网地址：
+
+```yaml
+server:
+  public_base_url: "https://mcp.example.com"   # 必须是 Client 可达的 HTTPS 地址，不能用 127.0.0.1
+```
+
+**要点：**
+
+- Tool 返回 `download_url`（形如 `https://mcp.example.com/files/{ticket}`），**不**再返回独立 `token` 字段
+- Ticket 单次有效、有 TTL（默认 900s，见 `runtime.default_download_ticket_ttl`）
+- 反向代理须对 `/files/` 关闭 buffering（见 [`deploy/nginx.example.conf`](deploy/nginx.example.conf)）
+- 生产环境完整配置见 **[生产部署指南](deploy/README.md)**（HTTPS、Nginx、`public_base_url`、安全清单）
+
+---
+
+## 生产部署
+
+请参阅 **[deploy/README.md](deploy/README.md)**：Docker Compose、目录权限、Nginx HTTPS、Systemd、监控探针与维护者发版流程。
 
 ---
 

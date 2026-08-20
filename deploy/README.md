@@ -69,6 +69,9 @@ docker compose logs -f
 | `security.mask_sensitive_commands` | `true` | 在审计日志中对包含密码、密钥、Token 的敏感命令参数自动掩码 |
 | `runtime.max_concurrent_requests` | `8` ~ `32` | 限制并发请求，防止小内存 VPS 资源耗尽 |
 | `runtime.max_concurrent_transfers` | `1` ~ `4` | 控制大文件流式传输并发数 |
+| `server.public_base_url` | `https://your-domain` | **必填（生产）**：`file_pull_prepare` 返回的下载 URL 前缀；须为 Client 可达的 HTTPS，禁止 `127.0.0.1` |
+| `runtime.default_download_ticket_ttl` | `900` | 下载 Ticket 有效期（秒） |
+| `runtime.max_active_download_tickets` | `100` | 同时活跃 Ticket 上限 |
 
 ---
 
@@ -82,6 +85,12 @@ docker compose logs -f
 - `proxy_buffering off;`：支持 MCP Streamable HTTP 流式长连接与大文件流式拉取。
 - `proxy_read_timeout 300s;`：适应长耗时同步命令与流式上传。
 - `client_max_body_size 0;`：允许任意大小流式传输（受 `mcp-execmesh` 内部限额保护）。
+
+**文件下载（`/files/{ticket}`）额外要求：**
+
+1. 配置 `server.public_base_url` 为与 Nginx 对外一致的 HTTPS 根 URL（含 path prefix 时需一并配置）。
+2. Nginx 必须为 `location /files/` 单独设置 `proxy_buffering off;`（见 `nginx.example.conf`）。
+3. Ticket 单次有效；过期或重放返回 `404`，不在 access log 中记录完整 ticket（建议 Nginx 使用 `$request_uri` 脱敏规则）。
 
 ---
 
@@ -103,7 +112,7 @@ sudo systemctl enable --now remote-mcp
 
 - **存活探针 (Liveness Probe)**：`GET /healthz` -> 返回 `200 OK`
 - **就绪探针 (Readiness Probe)**：`GET /readyz` -> 返回 `200 OK`，若 Target 校验或依赖故障返回 `503 Service Unavailable`
-- **单次安全下载**：`GET /files/{token}` -> 流式下载远程 Target 文件
+- **单次安全下载**：`GET /files/{ticket}` -> 流式下载远程 Target 文件（Ticket 单次有效）
 
 ---
 
