@@ -151,7 +151,7 @@ server:
 
 - Tool 返回 `download_url`（形如 `https://mcp.example.com/files/{ticket}`），**不**再返回独立 `token` 字段
 - Ticket 单次有效、有 TTL（默认 900s，见 `runtime.default_download_ticket_ttl`）
-- 反向代理须对 `/files/` 关闭 buffering（见 [`deploy/nginx.example.conf`](deploy/nginx.example.conf)）
+- 反向代理须对 `/files/` 关闭 buffering，并配置 access log 脱敏（见 [deploy/README.md — §4 反向代理](deploy/README.md)）
 - 生产环境完整配置见 **[生产部署指南](deploy/README.md)**（HTTPS、Nginx、`public_base_url`、安全清单）
 
 ---

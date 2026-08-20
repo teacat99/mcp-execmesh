@@ -81,16 +81,40 @@ docker compose logs -f
 
 参考文件：`deploy/nginx.example.conf`
 
+### 4.1 基础反代
+
 关键参数：
 - `proxy_buffering off;`：支持 MCP Streamable HTTP 流式长连接与大文件流式拉取。
 - `proxy_read_timeout 300s;`：适应长耗时同步命令与流式上传。
 - `client_max_body_size 0;`：允许任意大小流式传输（受 `mcp-execmesh` 内部限额保护）。
 
-**文件下载（`/files/{ticket}`）额外要求：**
+### 4.2 文件下载（`/files/{ticket}`）
 
 1. 配置 `server.public_base_url` 为与 Nginx 对外一致的 HTTPS 根 URL（含 path prefix 时需一并配置）。
-2. Nginx 必须为 `location /files/` 单独设置 `proxy_buffering off;`（见 `nginx.example.conf`）。
-3. Ticket 单次有效；过期或重放返回 `404`，不在 access log 中记录完整 ticket（建议 Nginx 使用 `$request_uri` 脱敏规则）。
+2. 为 `location /files/` 单独设置 `proxy_buffering off;`（见 `nginx.example.conf`）。
+3. Ticket 单次有效；过期或重放由 ExecMesh 返回 `404`。
+
+### 4.3 Access Log 脱敏（Ticket / Capability URL）
+
+默认 Nginx access log 会记录完整 `$request_uri`，导致 **下载 Ticket** 或 **Capability URL** 落盘到日志文件。请在 `http {}` 块配置 URI 脱敏后再写入 access log：
+
+```nginx
+# http 块（server 块之外）
+map $uri $mcp_safe_uri {
+    ~^/mcp/cap_v1_  /mcp/[CAPABILITY];
+    ~^/files/       /files/[TICKET];
+    default         $request_uri;
+}
+
+log_format mcp_redacted '$remote_addr - $remote_user [$time_local] '
+                        '"$request_method $mcp_safe_uri $server_protocol" '
+                        '$status $body_bytes_sent';
+
+# server 块内
+access_log /var/log/nginx/mcp.access.log mcp_redacted;
+```
+
+日志中 `/files/AbCdEf...` 会变为 `/files/[TICKET]`，避免 Ticket 通过日志备份或日志平台泄露。完整示例见 `deploy/nginx.example.conf`。
 
 ---
 
