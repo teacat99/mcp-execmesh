@@ -18,6 +18,7 @@ import (
 	"github.com/teacat99/mcp-execmesh/internal/security"
 	"github.com/teacat99/mcp-execmesh/internal/target"
 	"github.com/teacat99/mcp-execmesh/internal/transfer"
+	"github.com/teacat99/mcp-execmesh/internal/version"
 )
 
 const ServerInstructions = `This MCP manages configured remote hosts.
@@ -71,7 +72,7 @@ func NewServer(
 		Name:        "remote-executor-mcp",
 		Title:       "Remote Executor MCP",
 		Description: "Remote execution and target management MCP gateway",
-		Version:     "1.0.0",
+		Version:     version.Version,
 	}, &mcp.ServerOptions{
 		Instructions: ServerInstructions,
 	})

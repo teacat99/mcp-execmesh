@@ -1,3 +1,11 @@
 # Paths excluded when publishing to the public mirror (one pattern per line).
 # See scripts/sync-public.sh
 .cursor/
+.public-sync-worktree/
+.env
+.env.*
+*.pem
+*.key
+secrets/
+data/
+bin/

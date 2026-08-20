@@ -151,6 +151,9 @@ git tag v1.0.0
 
 # 或显式指定 tag（不必先在 private 打 tag）
 # PUBLIC_TAG=v1.0.0 ./scripts/sync-public.sh
+
+# 预览 sync 与 tag 操作（不 push）
+# DRY_RUN=1 ./scripts/sync-public.sh
 ```
 
 同步后 public 仓 `main` push（及 `v*` tag push）会自动触发 Docker workflow。本地手动测试镜像：

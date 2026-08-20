@@ -23,12 +23,7 @@ import (
 	"github.com/teacat99/mcp-execmesh/internal/ssh"
 	"github.com/teacat99/mcp-execmesh/internal/target"
 	"github.com/teacat99/mcp-execmesh/internal/transfer"
-)
-
-var (
-	version   = "dev"
-	gitCommit = "unknown"
-	buildDate = "unknown"
+	"github.com/teacat99/mcp-execmesh/internal/version"
 )
 
 func main() {
@@ -48,7 +43,7 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("Remote Executor MCP (mcp-execmesh) v%s (commit: %s, built: %s)\n", version, gitCommit, buildDate)
+		fmt.Printf("Remote Executor MCP (mcp-execmesh) v%s (commit: %s, built: %s)\n", version.Version, version.GitCommit, version.BuildDate)
 		os.Exit(0)
 	}
 
@@ -73,7 +68,7 @@ func main() {
 	// 3. Setup Structured Logging
 	setupLogger(cfg.Server.LogLevel)
 	slog.Info("starting remote-executor-mcp",
-		"version", version,
+		"version", version.Version,
 		"config", *configPath,
 		"targets_count", len(cfg.Targets),
 		"listen", cfg.Server.Listen,

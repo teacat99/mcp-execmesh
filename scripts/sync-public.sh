@@ -4,8 +4,12 @@
 # Optional tag propagation (v* semver only):
 #   git tag v1.0.0 && ./scripts/sync-public.sh
 #   PUBLIC_TAG=v1.0.0 ./scripts/sync-public.sh
+# Dry run (no push):
+#   DRY_RUN=1 ./scripts/sync-public.sh
 # Tags are applied to the public mirror HEAD and pushed to trigger GHCR semver builds.
 set -euo pipefail
+
+DRY_RUN="${DRY_RUN:-0}"
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXCLUDE_FILE="${ROOT}/public-sync.exclude"
@@ -96,6 +100,11 @@ push_public_tags() {
       continue
     fi
 
+    if [[ "${DRY_RUN}" == "1" ]]; then
+      echo "[dry-run] would tag public HEAD as ${tag} and push to origin"
+      continue
+    fi
+
     if [[ -n "${PUBLIC_TAG_MESSAGE:-}" ]]; then
       git -C "${WORKTREE}" tag -a "${tag}" -m "${PUBLIC_TAG_MESSAGE}"
     else
@@ -109,6 +118,12 @@ push_public_tags() {
 git -C "${WORKTREE}" add -A
 if git -C "${WORKTREE}" diff --cached --quiet; then
   echo "public mirror: no file changes"
+  push_public_tags
+  exit 0
+fi
+
+if [[ "${DRY_RUN}" == "1" ]]; then
+  echo "[dry-run] would commit and push ${PUBLIC_BRANCH} to ${PUBLIC_URL}"
   push_public_tags
   exit 0
 fi

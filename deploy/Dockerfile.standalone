@@ -17,7 +17,7 @@ ARG VERSION=dev
 ARG GIT_COMMIT=unknown
 ARG BUILD_DATE=unknown
 
-RUN go build -ldflags="-s -w -X main.version=${VERSION} -X main.gitCommit=${GIT_COMMIT} -X main.buildDate=${BUILD_DATE}" -o /bin/remote-mcp ./cmd/remote-mcp
+RUN go build -ldflags="-s -w -X github.com/teacat99/mcp-execmesh/internal/version.Version=${VERSION} -X github.com/teacat99/mcp-execmesh/internal/version.GitCommit=${GIT_COMMIT} -X github.com/teacat99/mcp-execmesh/internal/version.BuildDate=${BUILD_DATE}" -o /bin/remote-mcp ./cmd/remote-mcp
 
 FROM alpine:3.21
 
