@@ -1,0 +1,19 @@
+# Binaries and build artifacts
+/bin/
+/dist/
+/remote-mcp
+
+# Cursor temporary directories
+.cursor/tmp/
+.public-sync-worktree/
+
+# Secrets and local configs
+/secrets/
+/test-secrets/
+*.key
+*.pem
+*.password
+
+# OS and IDE files
+.DS_Store
+*.swp

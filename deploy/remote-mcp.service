@@ -1,0 +1,28 @@
+[Unit]
+Description=Remote Executor MCP Gateway Service
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=remote-mcp
+Group=remote-mcp
+WorkingDirectory=/var/lib/remote-mcp
+ExecStart=/usr/local/bin/remote-mcp -config /etc/remote-mcp/config.yaml
+Restart=on-failure
+RestartSec=5s
+
+# Security Hardening & Low Memory Limit
+ExecReload=/bin/kill -HUP $MAINPID
+MemoryMax=128M
+MemoryHigh=100M
+LimitNOFILE=65535
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/remote-mcp /var/log/remote-mcp
+ReadOnlyPaths=/etc/remote-mcp
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

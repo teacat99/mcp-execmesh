@@ -1,0 +1,5 @@
+# Example Capability registry. NEVER put plaintext tokens here.
+# Generate entries with:
+#   remote-mcp auth capability create --config /etc/remote-mcp/config.yaml --id chatgpt-main
+version: 1
+capabilities: []

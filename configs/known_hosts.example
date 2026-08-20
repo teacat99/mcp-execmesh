@@ -1,0 +1,6 @@
+# Example known_hosts file
+# Generate with: ssh-keyscan -t ed25519,rsa,ecdsa -p 22 10.10.0.21 >> known_hosts
+# Include every name the client will use (hostname, IP, Docker extra_hosts alias).
+# Go's ssh/knownhosts returns "key mismatch" if the host is listed with only one
+# algorithm but the server presents another.
+# 10.10.0.21 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGX...

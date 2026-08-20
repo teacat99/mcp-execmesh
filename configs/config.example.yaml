@@ -1,0 +1,110 @@
+# Remote Executor MCP Configuration
+version: 1
+
+server:
+  listen: "0.0.0.0:8080"
+  public_base_url: "https://mcp-execmesh.example.com"
+  mcp_path: "/mcp"
+  data_dir: "/var/lib/remote-mcp"
+  log_level: "info"
+  read_timeout: "30s"
+  write_timeout: "30s"
+  idle_timeout: "120s"
+  auth:
+    type: "none" # production: "bearer" or "api_key"
+    # bearer_token: "your-secret-token-here"
+    # token_file: "/etc/remote-mcp/secrets/mcp_bearer.txt"
+    public_base_url: "https://mcp-execmesh.example.com"
+    capability_enabled: false
+    # capability_registry_file: "/etc/remote-mcp/capabilities.yaml"
+    # bearer_registry_file: "/etc/remote-mcp/bearer_tokens.yaml"
+    allowed_origins:
+      - "https://chatgpt.com"
+
+runtime:
+  max_concurrent_requests: 8
+  max_concurrent_ssh: 4
+  max_concurrent_transfers: 1
+  max_requests_per_minute: 120
+  request_burst: 30
+  sync_exec_timeout: "30s"
+  max_stdout_bytes: 65536 # 64 KiB
+  max_stderr_bytes: 65536 # 64 KiB
+  max_job_output_read_bytes: 131072 # 128 KiB
+  max_upload_bytes: 5368709120 # 5 GiB
+  transfer_buffer_bytes: 65536 # 64 KiB
+  default_download_ticket_ttl: 900
+  max_download_ticket_ttl: 3600
+  max_active_download_tickets: 100
+
+security:
+  allow_inline_secrets: false
+  require_known_hosts: true
+  allowed_file_download_schemes:
+    - "https"
+  block_private_download_addresses: true
+  max_download_redirects: 3
+  audit_log_path: "stdout" # or "/var/log/remote-mcp/audit.log"
+  mask_sensitive_commands: false
+  known_hosts_file: "/etc/remote-mcp/known_hosts"
+
+jobs:
+  remote_base_dir: ".remote-mcp/jobs"
+  retention: "72h"
+
+# Optional split files for dynamic target management (D-008).
+# If targets_file is set, do not also list targets: in this file.
+# targets_file: "/etc/remote-mcp/targets.yaml"
+# credentials_file: "/etc/remote-mcp/credentials.yaml"
+
+targets:
+  - id: "test-01"
+    name: "Test Server 01"
+    host: "10.10.0.21"
+    port: 22
+    user: "deploy"
+    auth:
+      type: "private_key"
+      private_key_file: "/etc/remote-mcp/secrets/test-01_ed25519"
+      private_key_passphrase_file: ""
+    host_key:
+      known_hosts_file: "/etc/remote-mcp/known_hosts"
+      strict: true
+    default_cwd: "/srv/test"
+    shell: "/bin/sh"
+    tags:
+      - "test"
+      - "linux"
+    limits:
+      max_exec_seconds: 600
+      max_upload_bytes: 2147483648
+    capabilities:
+      exec: true
+      upload: true
+      jobs: true
+    allowed_paths:
+      - "/srv/test"
+      - "/var/log"
+
+  - id: "legacy-01"
+    name: "Legacy Password Server"
+    host: "192.168.50.10"
+    port: 22
+    user: "admin"
+    auth:
+      type: "password"
+      password_file: "/etc/remote-mcp/secrets/legacy-01.password"
+    host_key:
+      known_hosts_file: "/etc/remote-mcp/known_hosts"
+      strict: true
+    default_cwd: "/home/admin"
+    shell: "/bin/sh"
+    tags:
+      - "legacy"
+    limits:
+      max_exec_seconds: 300
+      max_upload_bytes: 1073741824
+    capabilities:
+      exec: true
+      upload: false
+      jobs: false

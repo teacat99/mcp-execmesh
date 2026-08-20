@@ -1,0 +1,3 @@
+# Example Bearer token registry (SHA-256 digests only).
+version: 1
+bearer_tokens: []

@@ -1,0 +1,3 @@
+# Dynamic targets. Persist via admin tools when targets_file is configured.
+version: 1
+targets: []
