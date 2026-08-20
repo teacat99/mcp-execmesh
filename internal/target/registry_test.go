@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/teacat/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/config"
 )
 
 func TestTargetRegistry(t *testing.T) {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/teacat/mcp-execmesh/internal/jobs"
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/jobs"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/target"
 )
 
 // ExecStartInput defines parameters for exec_start tool.

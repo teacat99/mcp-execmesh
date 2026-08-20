@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/teacat/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/config"
 )
 
 // Principal represents the authenticated client identity after any auth method.

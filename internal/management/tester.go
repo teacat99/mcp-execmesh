@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/ssh"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/ssh"
 )
 
 type TestResult struct {

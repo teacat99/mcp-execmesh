@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/teacat/mcp-execmesh/internal/ssh"
+	"github.com/teacat99/mcp-execmesh/internal/ssh"
 	cryptossh "golang.org/x/crypto/ssh"
 )
 

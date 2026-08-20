@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/teacat/mcp-execmesh/internal/audit"
+	"github.com/teacat99/mcp-execmesh/internal/audit"
 )
 
 type ctxKey string

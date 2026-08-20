@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/teacat/mcp-execmesh/internal/management"
+	"github.com/teacat99/mcp-execmesh/internal/management"
 )
 
 type TargetAddToolInput struct {

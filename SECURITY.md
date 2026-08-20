@@ -43,3 +43,15 @@ Remote Executor MCP 专为面向外部 AI Agent 和自动化系统的远程控�
 
 Capability URL MUST be treated as a password.
 
+---
+
+## 7. 漏洞报告 (Reporting a Vulnerability)
+
+请勿在公开 Issue 中披露可被利用的安全漏洞（尤其是 SSRF、认证绕过、路径逃逸、凭据泄露相关）。
+
+请通过 GitHub **Private vulnerability reporting** 提交：
+
+https://github.com/teacat99/mcp-execmesh/security/advisories/new
+
+我们会在合理时间内确认收到并评估影响；修复前请勿公开细节。感谢负责任披露。
+

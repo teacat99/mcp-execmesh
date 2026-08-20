@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/teacat/mcp-execmesh/internal/audit"
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/management/knownhosts"
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/audit"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/management/knownhosts"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/target"
 )
 
 type Reloader func() error

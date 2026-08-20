@@ -7,10 +7,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/ssh"
-	"github.com/teacat/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/ssh"
+	"github.com/teacat99/mcp-execmesh/internal/target"
 )
 
 func TestExecutor_CapabilityAndPathValidation(t *testing.T) {

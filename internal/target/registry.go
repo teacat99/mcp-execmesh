@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/ssh"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/ssh"
 )
 
 // TargetRegistry provides interface for discovering and retrieving targets.

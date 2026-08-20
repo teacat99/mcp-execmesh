@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/transfer"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/transfer"
 )
 
 // FilePushInput defines parameters for file_push tool.

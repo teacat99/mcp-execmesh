@@ -10,9 +10,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/target"
 	"golang.org/x/crypto/ssh"
 )
 

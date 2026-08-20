@@ -5,9 +5,9 @@ import (
 	"fmt"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/teacat/mcp-execmesh/internal/executor"
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/executor"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/target"
 )
 
 // ExecInput defines parameters for the exec tool.

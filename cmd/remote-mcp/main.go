@@ -12,17 +12,17 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/teacat/mcp-execmesh/internal/audit"
-	"github.com/teacat/mcp-execmesh/internal/authcli"
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/executor"
-	"github.com/teacat/mcp-execmesh/internal/jobs"
-	"github.com/teacat/mcp-execmesh/internal/management"
-	servermcp "github.com/teacat/mcp-execmesh/internal/mcp"
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/ssh"
-	"github.com/teacat/mcp-execmesh/internal/target"
-	"github.com/teacat/mcp-execmesh/internal/transfer"
+	"github.com/teacat99/mcp-execmesh/internal/audit"
+	"github.com/teacat99/mcp-execmesh/internal/authcli"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/executor"
+	"github.com/teacat99/mcp-execmesh/internal/jobs"
+	"github.com/teacat99/mcp-execmesh/internal/management"
+	servermcp "github.com/teacat99/mcp-execmesh/internal/mcp"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/ssh"
+	"github.com/teacat99/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/transfer"
 )
 
 var (

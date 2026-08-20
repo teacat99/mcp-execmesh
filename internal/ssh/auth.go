@@ -3,7 +3,7 @@ package ssh
 import (
 	"fmt"
 
-	"github.com/teacat/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/config"
 	"golang.org/x/crypto/ssh"
 )
 

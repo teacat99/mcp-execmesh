@@ -22,11 +22,11 @@ import (
 	"github.com/pkg/sftp"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/teacat/mcp-execmesh/internal/audit"
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/ssh"
-	"github.com/teacat/mcp-execmesh/internal/target"
-	"github.com/teacat/mcp-execmesh/internal/transfer"
+	"github.com/teacat99/mcp-execmesh/internal/audit"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/ssh"
+	"github.com/teacat99/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/transfer"
 	cryptossh "golang.org/x/crypto/ssh"
 )
 

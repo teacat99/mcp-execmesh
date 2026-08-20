@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/pkg/sftp"
-	"github.com/teacat/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/security"
 )
 
 func safeDownloadFilename(remotePath string) string {

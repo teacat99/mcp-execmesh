@@ -1,4 +1,4 @@
-module github.com/teacat/mcp-execmesh
+module github.com/teacat99/mcp-execmesh
 
 go 1.25.0
 

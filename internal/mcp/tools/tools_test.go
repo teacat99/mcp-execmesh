@@ -7,13 +7,13 @@ import (
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/assert"
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/executor"
-	"github.com/teacat/mcp-execmesh/internal/jobs"
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/ssh"
-	"github.com/teacat/mcp-execmesh/internal/target"
-	"github.com/teacat/mcp-execmesh/internal/transfer"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/executor"
+	"github.com/teacat99/mcp-execmesh/internal/jobs"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/ssh"
+	"github.com/teacat99/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/transfer"
 )
 
 type mockRegistry struct {

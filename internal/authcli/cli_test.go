@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/teacat/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/security"
 )
 
 func TestCapabilityCLICreateListRevokeRotate(t *testing.T) {

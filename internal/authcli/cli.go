@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/teacat/mcp-execmesh/internal/config"
-	"github.com/teacat/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/config"
+	"github.com/teacat99/mcp-execmesh/internal/security"
 )
 
 const usage = `Usage:

@@ -1,5 +1,7 @@
 # Remote Executor MCP (`mcp-execmesh`)
 
+[![CI](https://github.com/teacat99/mcp-execmesh/actions/workflows/ci.yml/badge.svg)](https://github.com/teacat99/mcp-execmesh/actions/workflows/ci.yml)
+
 Remote Executor MCP 是一个轻量级、低内存占用、高安全性的 AI 远程执行网关（MCP Server）。它采用 **控制面（MCP Gateway）与数据面（Remote Target）分离** 的架构，允许 AI 客户端（如 ChatGPT Developer Mode、Cursor 等）通过标准 MCP Streamable HTTP 协议安全地控制配置的目标主机，执行命令、流式传输文件并管理异步长任务。
 
 ---

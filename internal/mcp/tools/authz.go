@@ -3,8 +3,8 @@ package tools
 import (
 	"context"
 
-	"github.com/teacat/mcp-execmesh/internal/security"
-	"github.com/teacat/mcp-execmesh/internal/target"
+	"github.com/teacat99/mcp-execmesh/internal/security"
+	"github.com/teacat99/mcp-execmesh/internal/target"
 )
 
 func principalFromCtx(ctx context.Context) *security.Principal {
